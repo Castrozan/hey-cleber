@@ -141,21 +141,41 @@ journalctl --user -u hey-cleber -f
 
 ## Development
 
-```bash
-# Run all checks (lint + typecheck + tests)
-make check
+### Using devenv (recommended)
 
-# Individual targets
+```bash
+# Enter the dev shell (Python 3.12, all deps, tools)
+devenv shell
+
+# Run convenience scripts inside the shell
+test       # pytest
+lint       # ruff check
+format     # ruff format
+typecheck  # mypy
+check      # all of the above
+run        # python -m hey_cleber
+```
+
+Or run directly without entering the shell:
+
+```bash
+devenv shell -- check
+devenv shell -- test
+```
+
+### Using Make
+
+```bash
+make check      # lint + test
 make test       # pytest
 make lint       # ruff check
 make format     # ruff format
-make typecheck  # mypy
 ```
 
-### Running tests
+### Manual setup
 
 ```bash
-pip install pytest ruff mypy
+pip install -e ".[dev]"
 python -m pytest tests/ -v
 ```
 

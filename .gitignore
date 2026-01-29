@@ -16,12 +16,8 @@ env/
 # Nix
 result
 result-*
-.devenv*
-devenv.lock
-devenv.nix
-devenv.yaml
 
-# devenv
+# devenv (generated / state — do NOT ignore devenv.nix and devenv.yaml)
 .devenv/
 .devenv.flake.nix
 devenv.lock
