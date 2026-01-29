@@ -61,7 +61,7 @@ def transcribe_full(audio: np.ndarray, config: AppConfig) -> str:
                 config.whisper_bin,
                 wav_path,
                 "--model", "small",
-                "--language", "en",
+                "--language", "auto",
                 "--output_format", "txt",
                 "--output_dir", tempfile.gettempdir(),
             ],

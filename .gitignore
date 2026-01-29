@@ -16,6 +16,15 @@ env/
 # Nix
 result
 result-*
+.devenv*
+devenv.lock
+devenv.nix
+devenv.yaml
+
+# devenv
+.devenv/
+.devenv.flake.nix
+devenv.lock
 
 # IDE
 .vscode/

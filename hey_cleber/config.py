@@ -35,7 +35,7 @@ DEFAULT_MPV_BIN: str = "/run/current-system/sw/bin/mpv"
 
 # Gateway defaults
 DEFAULT_GATEWAY_URL: str = "http://localhost:18789"
-DEFAULT_GATEWAY_TOKEN: str = "0d32190f1da46a0b11e668aa34b6ca41f53222f3f3375fb4"
+DEFAULT_GATEWAY_TOKEN: str = ""  # Set via CLAWDBOT_GATEWAY_TOKEN env var
 
 
 @dataclass(frozen=True)
