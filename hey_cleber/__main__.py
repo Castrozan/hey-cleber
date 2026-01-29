@@ -126,7 +126,10 @@ def main(config: AppConfig | None = None) -> None:
 
                         if silence_after_speech_start is None:
                             silence_after_speech_start = time.monotonic()
-                        elif time.monotonic() - silence_after_speech_start >= config.keyword_silence_sec:
+                        elif (
+                            time.monotonic() - silence_after_speech_start
+                            >= config.keyword_silence_sec
+                        ):
                             log.debug("VAD: speech ended (%.1fs buffered)", buffer_duration)
                             break
 

@@ -1,12 +1,16 @@
-.PHONY: test lint format check
+.PHONY: test lint format typecheck check
 
 test:
-	pytest
+	python -m pytest tests/ -v
 
 lint:
-	ruff check
+	ruff check hey_cleber/ tests/
 
 format:
-	ruff format
+	ruff format hey_cleber/ tests/
 
-check: lint test
+typecheck:
+	mypy hey_cleber/ --ignore-missing-imports --disable-error-code=import-untyped
+
+check: lint typecheck test
+	@echo "✅ All checks passed"
