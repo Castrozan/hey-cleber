@@ -21,6 +21,26 @@ Listens for your wake word, records your command, transcribes it, sends it to yo
 5. Playback via **mpv** over PipeWire
 6. Return to Phase 1
 
+## Package structure
+
+```
+hey_cleber/
+├── __init__.py          # Package version
+├── __main__.py          # Entry point and main loop
+├── audio.py             # Audio helpers (RMS, beep, play, save WAV, record)
+├── vad.py               # Silero VAD wrapper class
+├── transcription.py     # Whisper tiny + Whisper CLI transcription
+├── gateway.py           # Clawdbot gateway client
+├── tts.py               # TTS generation + playback (edge-tts + mpv)
+├── config.py            # Configuration constants and CLI args
+├── keywords.py          # Keyword matching logic
+tests/
+├── test_keywords.py     # Keyword matching tests
+├── test_config.py       # Config/args tests
+├── test_audio.py        # RMS, beep generation tests
+├── test_transcription.py # Transcription tests (mocked)
+```
+
 ## Requirements
 
 - Python 3.10+
@@ -39,14 +59,26 @@ Listens for your wake word, records your command, transcribes it, sends it to yo
 - `edge-tts`
 - `openwakeword` (for bundled Silero VAD model)
 
-## Setup
+## Setup (NixOS)
 
-### Quick setup (NixOS)
+Add to your flake inputs:
 
-```bash
-chmod +x hey-cleber-setup.sh
-./hey-cleber-setup.sh
+```nix
+hey-cleber.url = "github:castrozan/hey-cleber/v2.0.0";
 ```
+
+Enable via Home Manager:
+
+```nix
+imports = [ inputs.hey-cleber.homeManagerModules.default ];
+
+services.hey-cleber = {
+  enable = true;
+  gatewayUrl = "http://localhost:18789";
+};
+```
+
+The flake manages the venv, dependencies, and systemd service automatically.
 
 ### Manual setup
 
@@ -76,7 +108,7 @@ Enable the chat completions endpoint in your `clawdbot.json`:
 
 ```bash
 source ~/.local/share/hey-cleber-venv/bin/activate
-python3 hey-cleber.py
+python3 -m hey_cleber
 ```
 
 ### Options
@@ -84,7 +116,7 @@ python3 hey-cleber.py
 | Flag | Default | Description |
 |------|---------|-------------|
 | `--keywords` | cleber,kleber,clever,... | Comma-separated activation keywords |
-| `--vad-threshold` | 0.5 | Silero VAD speech detection threshold |
+| `--vad-threshold` | 0.4 | Silero VAD speech detection threshold |
 | `--silence-threshold` | 300 | RMS silence threshold for recording |
 | `--device` | (default) | Input audio device index |
 | `--list-devices` | | List available audio devices and exit |
@@ -93,12 +125,6 @@ python3 hey-cleber.py
 ### Systemd service
 
 ```bash
-# Install as user service
-cp hey-cleber.service ~/.config/systemd/user/
-systemctl --user daemon-reload
-systemctl --user enable --now hey-cleber
-
-# Manage
 systemctl --user status hey-cleber
 systemctl --user restart hey-cleber
 journalctl --user -u hey-cleber -f
@@ -112,6 +138,26 @@ journalctl --user -u hey-cleber -f
 | `CLAWDBOT_GATEWAY_TOKEN` | *(required)* | Gateway auth token |
 | `WHISPER_BIN` | `/run/current-system/sw/bin/whisper` | Path to Whisper CLI |
 | `MPV_BIN` | `/run/current-system/sw/bin/mpv` | Path to mpv |
+
+## Development
+
+```bash
+# Run all checks (lint + typecheck + tests)
+make check
+
+# Individual targets
+make test       # pytest
+make lint       # ruff check
+make format     # ruff format
+make typecheck  # mypy
+```
+
+### Running tests
+
+```bash
+pip install pytest ruff mypy
+python -m pytest tests/ -v
+```
 
 ## License
 

@@ -1,0 +1,36 @@
+[project]
+name = "hey-cleber"
+version = "2.0.0"
+description = "Always-on voice assistant powered by Clawdbot"
+requires-python = ">=3.10"
+dependencies = [
+    "sounddevice",
+    "numpy",
+    "requests",
+    "faster-whisper",
+    "onnxruntime",
+    "edge-tts",
+    "openwakeword",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "ruff",
+    "mypy",
+]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP"]
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

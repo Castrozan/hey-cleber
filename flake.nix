@@ -13,80 +13,15 @@
 
       python = pkgs.python312;
 
-      pythonEnv = python.withPackages (
-        ps: with ps; [
-          numpy
-          sounddevice
-          requests
-          onnxruntime
-          edge-tts
-        ]
-      );
-
-      # faster-whisper and openwakeword are not in nixpkgs, install via pip overlay
-      hey-cleber-venv = pkgs.stdenv.mkDerivation {
-        pname = "hey-cleber-venv";
-        version = "1.0.0";
-        src = ./.;
-
-        nativeBuildInputs = [
-          python
-          pkgs.python312Packages.pip
-          pkgs.python312Packages.setuptools
-          pkgs.python312Packages.wheel
-        ];
-
-        buildInputs = [
-          pkgs.portaudio
-          pkgs.stdenv.cc.cc.lib
-        ];
-
-        buildPhase = ''
-          export HOME=$TMPDIR
-          ${python}/bin/python3 -m venv $TMPDIR/venv --system-site-packages
-          source $TMPDIR/venv/bin/activate
-          pip install --no-cache-dir \
-            faster-whisper \
-            openwakeword \
-            sounddevice \
-            numpy \
-            requests \
-            edge-tts \
-            onnxruntime
-        '';
-
-        installPhase = ''
-          mkdir -p $out/lib/hey-cleber
-          cp -r $TMPDIR/venv/* $out/lib/hey-cleber/
-
-          # Copy the script
-          mkdir -p $out/share/hey-cleber
-          cp hey-cleber.py $out/share/hey-cleber/
-
-          # Create wrapper script
-          mkdir -p $out/bin
-          cat > $out/bin/hey-cleber <<'WRAPPER'
-          #!/usr/bin/env bash
-          SCRIPT_DIR="@out@/share/hey-cleber"
-          VENV_DIR="@out@/lib/hey-cleber"
-          export LD_LIBRARY_PATH="${pkgs.stdenv.cc.cc.lib}/lib:${pkgs.portaudio}/lib''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
-          export PATH="${pkgs.ffmpeg}/bin:${pkgs.mpv}/bin:${pkgs.openai-whisper}/bin:$PATH"
-          source "$VENV_DIR/bin/activate"
-          exec python3 "$SCRIPT_DIR/hey-cleber.py" "$@"
-          WRAPPER
-          substituteInPlace $out/bin/hey-cleber --replace "@out@" "$out"
-          chmod +x $out/bin/hey-cleber
-        '';
-      };
-
-      # Simpler approach: just a wrapper that uses a managed venv
+      # Wrapper that uses a managed venv and runs the package
       hey-cleber = pkgs.writeShellScriptBin "hey-cleber" ''
         VENV_DIR="''${HEY_CLEBER_VENV:-$HOME/.local/share/hey-cleber-venv}"
-        SCRIPT="${self}/hey-cleber.py"
+        PACKAGE_DIR="${self}/hey_cleber"
 
         export LD_LIBRARY_PATH="${pkgs.stdenv.cc.cc.lib}/lib:${pkgs.portaudio}/lib''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
         export PATH="${pkgs.ffmpeg}/bin:${pkgs.mpv}/bin:${pkgs.openai-whisper}/bin:$PATH"
         export XDG_RUNTIME_DIR="''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+        export PYTHONPATH="${self}''${PYTHONPATH:+:$PYTHONPATH}"
 
         if [ ! -d "$VENV_DIR" ]; then
           echo "Setting up Hey Cleber venv at $VENV_DIR ..."
@@ -98,13 +33,23 @@
           source "$VENV_DIR/bin/activate"
         fi
 
-        exec python3 "$SCRIPT" "$@"
+        exec python3 -m hey_cleber "$@"
       '';
     in
     {
       packages.${system} = {
         default = hey-cleber;
         inherit hey-cleber;
+      };
+
+      devShells.${system}.default = pkgs.mkShell {
+        buildInputs = [
+          python
+          pkgs.python312Packages.numpy
+          pkgs.python312Packages.requests
+          pkgs.python312Packages.pytest
+          pkgs.ruff
+        ];
       };
 
       # Home Manager module
@@ -161,7 +106,7 @@
             extraArgs = lib.mkOption {
               type = lib.types.listOf lib.types.str;
               default = [ ];
-              description = "Extra arguments to pass to hey-cleber.py";
+              description = "Extra arguments to pass to hey-cleber";
             };
 
             package = lib.mkOption {
