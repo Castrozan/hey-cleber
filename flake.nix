@@ -85,10 +85,10 @@
               description = "Clawdbot gateway URL";
             };
 
-            gatewayTokenFile = lib.mkOption {
-              type = lib.types.nullOr lib.types.path;
-              default = null;
-              description = "Path to file containing the gateway token. If null, uses CLAWDBOT_GATEWAY_TOKEN env var.";
+            gatewayToken = lib.mkOption {
+              type = lib.types.str;
+              default = "";
+              description = "Gateway authentication token. Set via this option or CLAWDBOT_GATEWAY_TOKEN env var.";
             };
 
             whisperBin = lib.mkOption {
@@ -140,7 +140,7 @@
                   "CLAWDBOT_GATEWAY_URL=${cfg.gatewayUrl}"
                   "WHISPER_BIN=${cfg.whisperBin}"
                   "MPV_BIN=${cfg.mpvBin}"
-                ];
+                ] ++ lib.optional (cfg.gatewayToken != "") "CLAWDBOT_GATEWAY_TOKEN=${cfg.gatewayToken}";
               };
 
               Install = {
