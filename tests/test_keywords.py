@@ -1,51 +1,54 @@
-"""Tests for keyword matching logic."""
+"""Tests for keyword adapter."""
 
-from hey_clever.keywords import check_keyword
+from hey_clever.adapters.keyword_adapter import KeywordAdapter
+from hey_clever.config.settings import KeywordConfig
 
 KEYWORDS = ("clever", "klever", "cleber", "kleber", "cleaver")
 
 
-class TestCheckKeyword:
-    """Tests for check_keyword function."""
+def _make_adapter(keywords: tuple[str, ...] = KEYWORDS) -> KeywordAdapter:
+    return KeywordAdapter(KeywordConfig(keywords=keywords))
 
+
+class TestKeywordAdapter:
     def test_exact_match(self):
-        assert check_keyword("clever", KEYWORDS) is True
+        detected, conf = _make_adapter().detect("clever")
+        assert detected is True
+        assert conf == 1.0
 
     def test_case_insensitive(self):
-        assert check_keyword("CLEVER", KEYWORDS) is True
-        assert check_keyword("Clever", KEYWORDS) is True
+        assert _make_adapter().detect("CLEVER")[0] is True
+        assert _make_adapter().detect("Clever")[0] is True
 
     def test_keyword_in_sentence(self):
-        assert check_keyword("hey clever how are you", KEYWORDS) is True
+        assert _make_adapter().detect("hey clever how are you")[0] is True
 
     def test_phonetic_variant(self):
-        assert check_keyword("I heard kleber say something", KEYWORDS) is True
-
-    def test_cleber_variant(self):
-        assert check_keyword("that was cleber", KEYWORDS) is True
+        assert _make_adapter().detect("I heard kleber say something")[0] is True
 
     def test_no_match(self):
-        assert check_keyword("hello world", KEYWORDS) is False
+        detected, conf = _make_adapter().detect("hello world")
+        assert detected is False
+        assert conf == 0.0
 
     def test_empty_text(self):
-        assert check_keyword("", KEYWORDS) is False
+        assert _make_adapter().detect("")[0] is False
 
     def test_whitespace_only(self):
-        assert check_keyword("   ", KEYWORDS) is False
+        assert _make_adapter().detect("   ")[0] is False
 
     def test_empty_keywords(self):
-        assert check_keyword("clever", ()) is False
+        assert _make_adapter(keywords=()).detect("clever")[0] is False
 
-    def test_partial_match_within_word(self):
-        assert check_keyword("cleaver is here", KEYWORDS) is True
+    def test_with_punctuation(self):
+        assert _make_adapter().detect("clever!")[0] is True
+        assert _make_adapter().detect("hey, clever.")[0] is True
 
-    def test_keyword_with_punctuation(self):
-        assert check_keyword("clever!", KEYWORDS) is True
-        assert check_keyword("hey, clever.", KEYWORDS) is True
-
-    def test_list_keywords(self):
-        assert check_keyword("clever", ["clever", "klever"]) is True
+    def test_get_keywords(self):
+        adapter = _make_adapter()
+        assert adapter.get_keywords() == KEYWORDS
 
     def test_custom_keywords(self):
-        assert check_keyword("jarvis activate", ("jarvis",)) is True
-        assert check_keyword("hey siri", ("jarvis",)) is False
+        adapter = _make_adapter(keywords=("jarvis",))
+        assert adapter.detect("jarvis activate")[0] is True
+        assert adapter.detect("hey siri")[0] is False

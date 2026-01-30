@@ -1,84 +1,137 @@
-"""Tests for configuration parsing."""
+"""Tests for configuration and settings."""
 
 import pytest
 
-from hey_clever.config import DEFAULT_KEYWORDS, AppConfig, parse_args
+from hey_clever.config.settings import (
+    AudioConfig,
+    GatewayConfig,
+    KeywordConfig,
+    RecordingConfig,
+    Settings,
+    TranscriptionConfig,
+    TTSConfig,
+    VADConfig,
+)
 
 
-class TestAppConfig:
-    """Tests for AppConfig dataclass."""
-
+class TestAudioConfig:
     def test_defaults(self):
-        cfg = AppConfig()
+        cfg = AudioConfig()
         assert cfg.sample_rate == 16000
         assert cfg.channels == 1
         assert cfg.block_size == 512
-        assert cfg.silence_threshold == 300.0
-        assert cfg.vad_threshold == 0.4
-        assert cfg.debug is False
         assert cfg.device is None
-        assert len(cfg.keywords) == len(DEFAULT_KEYWORDS)
 
     def test_frozen(self):
-        cfg = AppConfig()
+        cfg = AudioConfig()
         with pytest.raises(AttributeError):
-            cfg.debug = True  # type: ignore[misc]
-
-    def test_custom_values(self):
-        cfg = AppConfig(
-            silence_threshold=500.0,
-            vad_threshold=0.6,
-            keywords=("jarvis",),
-            debug=True,
-            device=3,
-        )
-        assert cfg.silence_threshold == 500.0
-        assert cfg.vad_threshold == 0.6
-        assert cfg.keywords == ("jarvis",)
-        assert cfg.debug is True
-        assert cfg.device == 3
+            cfg.sample_rate = 44100  # type: ignore[misc]
 
 
-class TestParseArgs:
-    """Tests for CLI argument parsing."""
-
+class TestVADConfig:
     def test_defaults(self):
-        cfg = parse_args([])
-        assert cfg.debug is False
-        assert cfg.device is None
-        assert cfg.keywords == tuple(DEFAULT_KEYWORDS)
+        cfg = VADConfig()
+        assert cfg.threshold == 0.4
+        assert cfg.silence_duration == 0.8
+        assert cfg.min_speech_duration == 0.3
+        assert cfg.max_buffer_sec == 5.0
 
-    def test_debug_flag(self):
-        cfg = parse_args(["--debug"])
-        assert cfg.debug is True
 
-    def test_device(self):
-        cfg = parse_args(["--device", "2"])
-        assert cfg.device == 2
+class TestRecordingConfig:
+    def test_defaults(self):
+        cfg = RecordingConfig()
+        assert cfg.silence_threshold == 300.0
+        assert cfg.silence_duration == 2.0
+        assert cfg.max_duration == 30.0
+        assert cfg.min_duration == 0.5
+
+
+class TestKeywordConfig:
+    def test_defaults(self):
+        cfg = KeywordConfig()
+        assert "clever" in cfg.keywords
+        assert "cleber" in cfg.keywords
 
     def test_custom_keywords(self):
-        cfg = parse_args(["--keywords", "jarvis,friday"])
-        assert cfg.keywords == ("jarvis", "friday")
+        cfg = KeywordConfig(keywords=("jarvis",))
+        assert cfg.keywords == ("jarvis",)
 
-    def test_silence_threshold(self):
-        cfg = parse_args(["--silence-threshold", "500"])
-        assert cfg.silence_threshold == 500.0
 
-    def test_vad_threshold(self):
-        cfg = parse_args(["--vad-threshold", "0.6"])
-        assert cfg.vad_threshold == 0.6
+class TestTranscriptionConfig:
+    def test_defaults(self):
+        cfg = TranscriptionConfig()
+        assert cfg.keyword_model == "tiny"
+        assert cfg.command_model == "small"
+        assert cfg.language == "en"
 
-    def test_env_gateway_url(self, monkeypatch):
+
+class TestGatewayConfig:
+    def test_defaults(self):
+        cfg = GatewayConfig()
+        assert cfg.url == "http://localhost:18789"
+        assert cfg.token == ""
+        assert cfg.timeout == 60
+
+
+class TestTTSConfig:
+    def test_defaults(self):
+        cfg = TTSConfig()
+        assert cfg.voice == "en-US-GuyNeural"
+
+
+class TestSettings:
+    def test_defaults(self):
+        s = Settings.default()
+        assert s.debug is False
+        assert isinstance(s.audio, AudioConfig)
+        assert isinstance(s.vad, VADConfig)
+        assert isinstance(s.recording, RecordingConfig)
+        assert isinstance(s.keyword, KeywordConfig)
+        assert isinstance(s.transcription, TranscriptionConfig)
+        assert isinstance(s.gateway, GatewayConfig)
+        assert isinstance(s.tts, TTSConfig)
+
+    def test_frozen(self):
+        s = Settings.default()
+        with pytest.raises(AttributeError):
+            s.debug = True  # type: ignore[misc]
+
+    def test_from_args_defaults(self):
+        s = Settings.from_args([])
+        assert s.debug is False
+        assert s.audio.device is None
+
+    def test_from_args_debug(self):
+        s = Settings.from_args(["--debug"])
+        assert s.debug is True
+
+    def test_from_args_device(self):
+        s = Settings.from_args(["--device", "3"])
+        assert s.audio.device == 3
+
+    def test_from_args_keywords(self):
+        s = Settings.from_args(["--keywords", "jarvis,friday"])
+        assert s.keyword.keywords == ("jarvis", "friday")
+
+    def test_from_args_vad_threshold(self):
+        s = Settings.from_args(["--vad-threshold", "0.6"])
+        assert s.vad.threshold == 0.6
+
+    def test_from_args_silence_threshold(self):
+        s = Settings.from_args(["--silence-threshold", "500"])
+        assert s.recording.silence_threshold == 500.0
+
+    def test_from_args_env_gateway(self, monkeypatch):
         monkeypatch.setenv("CLAWDBOT_GATEWAY_URL", "http://example.com:9999")
-        cfg = parse_args([])
-        assert cfg.gateway_url == "http://example.com:9999"
+        s = Settings.from_args([])
+        assert s.gateway.url == "http://example.com:9999"
 
-    def test_env_whisper_bin(self, monkeypatch):
+    def test_from_args_env_whisper(self, monkeypatch):
         monkeypatch.setenv("WHISPER_BIN", "/usr/bin/whisper")
-        cfg = parse_args([])
-        assert cfg.whisper_bin == "/usr/bin/whisper"
+        s = Settings.from_args([])
+        assert s.transcription.whisper_bin == "/usr/bin/whisper"
 
     def test_list_devices(self):
         with pytest.raises(SystemExit) as exc_info:
-            parse_args(["--list-devices"])
+            Settings.from_args(["--list-devices"])
         assert exc_info.value.code == 0
