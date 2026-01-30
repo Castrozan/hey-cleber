@@ -19,7 +19,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip
-          pip install numpy requests onnxruntime pytest-mock
+          pip install numpy requests onnxruntime pytest-mock sounddevice
           pip install pytest ruff mypy types-requests
 
       - name: Lint
