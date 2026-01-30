@@ -131,7 +131,14 @@ class TestSettings:
         s = Settings.from_args([])
         assert s.transcription.whisper_bin == "/usr/bin/whisper"
 
-    def test_list_devices(self):
+    def test_list_devices(self, monkeypatch):
+        import sys
+        import types
+
+        mock_sd = types.ModuleType("sounddevice")
+        mock_sd.query_devices = lambda: "Mock Device List"  # type: ignore[attr-defined]
+        monkeypatch.setitem(sys.modules, "sounddevice", mock_sd)
+
         with pytest.raises(SystemExit) as exc_info:
             Settings.from_args(["--list-devices"])
         assert exc_info.value.code == 0
