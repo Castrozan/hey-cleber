@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 import logging
+from typing import TYPE_CHECKING
 
 import numpy as np
-import sounddevice as sd
 
 from hey_clever.ports.sound_cues import ISoundCues
+
+if TYPE_CHECKING:
+    pass
 
 log = logging.getLogger(__name__)
 
@@ -21,6 +24,8 @@ def _tone(freq: float, duration: float, volume: float = 0.3) -> np.ndarray:
 
 def _play(audio: np.ndarray) -> None:
     try:
+        import sounddevice as sd
+
         sd.play(audio, samplerate=SAMPLE_RATE, blocksize=4096)
         sd.wait()
     except Exception as e:
