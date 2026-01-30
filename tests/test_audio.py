@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from hey_cleber.audio import generate_beep, rms
+from hey_clever.audio import generate_beep, rms
 
 
 class TestRms:

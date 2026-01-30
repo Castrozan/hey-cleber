@@ -25,8 +25,16 @@ MIN_KEYWORD_SPEECH_SEC: float = 0.3
 
 # Default keywords and phonetic variants
 DEFAULT_KEYWORDS: list[str] = [
-    "cleber", "kleber", "clever", "cleaver", "clebert", "cleber's",
-    "kleiber", "klebber", "cleyber", "klever",
+    "clever",
+    "klever",
+    "cleber",
+    "kleber",
+    "cleaver",
+    "clevert",
+    "kleiber",
+    "klebber",
+    "cleyber",
+    "cleber's",
 ]
 
 # External binary paths
@@ -77,26 +85,34 @@ class AppConfig:
 
 def parse_args(argv: list[str] | None = None) -> AppConfig:
     """Parse CLI arguments and environment variables into an AppConfig."""
-    parser = argparse.ArgumentParser(description="Hey Cleber voice assistant")
+    parser = argparse.ArgumentParser(description="Hey Clever voice assistant")
     parser.add_argument(
-        "--list-devices", action="store_true",
+        "--list-devices",
+        action="store_true",
         help="List audio devices and exit",
     )
     parser.add_argument(
-        "--device", type=int, default=None,
+        "--device",
+        type=int,
+        default=None,
         help="Input device index",
     )
     parser.add_argument(
-        "--silence-threshold", type=float,
+        "--silence-threshold",
+        type=float,
         default=DEFAULT_SILENCE_THRESHOLD_RMS,
         help="RMS silence threshold for command recording (default: %(default)s)",
     )
     parser.add_argument(
-        "--keywords", type=str, default=None,
-        help="Comma-separated activation keywords (default: cleber variants)",
+        "--keywords",
+        type=str,
+        default=None,
+        help="Comma-separated activation keywords (default: clever variants)",
     )
     parser.add_argument(
-        "--vad-threshold", type=float, default=DEFAULT_VAD_THRESHOLD,
+        "--vad-threshold",
+        type=float,
+        default=DEFAULT_VAD_THRESHOLD,
         help="Silero VAD speech probability threshold (default: %(default)s)",
     )
     parser.add_argument("--debug", action="store_true")
@@ -108,6 +124,7 @@ def parse_args(argv: list[str] | None = None) -> AppConfig:
 
     if args.list_devices:
         import sounddevice as sd
+
         print(sd.query_devices())
         raise SystemExit(0)
 

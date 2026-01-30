@@ -1,7 +1,7 @@
-"""Entry point for Hey Cleber voice assistant.
+"""Entry point for Hey Clever voice assistant.
 
 Usage:
-    python -m hey_cleber [--debug] [--device N] [--keywords word1,word2]
+    python -m hey_clever [--debug] [--device N] [--keywords word1,word2]
 """
 
 from __future__ import annotations
@@ -23,11 +23,11 @@ from .transcription import transcribe_full, transcribe_tiny
 from .tts import tts_and_play
 from .vad import SileroVAD, find_silero_vad_model
 
-log = logging.getLogger("hey-cleber")
+log = logging.getLogger("hey-clever")
 
 
 def main(config: AppConfig | None = None) -> None:
-    """Run the Hey Cleber voice assistant main loop."""
+    """Run the Hey Clever voice assistant main loop."""
     if config is None:
         config = parse_args()
 
@@ -49,12 +49,14 @@ def main(config: AppConfig | None = None) -> None:
     # Initialize faster-whisper tiny model for keyword detection
     log.info("Loading Whisper tiny model for keyword detection...")
     from faster_whisper import WhisperModel
+
     whisper_tiny = WhisperModel("tiny", device="cpu", compute_type="int8")
     log.info("Whisper tiny model loaded.")
 
     log.info(
         "Starting audio stream (sample_rate=%d, block_size=%d)",
-        config.sample_rate, config.block_size,
+        config.sample_rate,
+        config.block_size,
     )
 
     # Shared state
@@ -87,7 +89,7 @@ def main(config: AppConfig | None = None) -> None:
         **device_kwargs,
     )
 
-    log.info("=== Hey Cleber is listening! Say 'Cleber' to activate. ===")
+    log.info("=== Hey Clever is listening! Say 'Clever' to activate. ===")
 
     with stream:
         while True:

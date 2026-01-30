@@ -1,4 +1,4 @@
-# Hey Cleber 🎤
+# Hey Clever
 
 Always-on voice assistant powered by [Clawdbot](https://github.com/clawdbot/clawdbot).
 
@@ -10,7 +10,7 @@ Listens for your wake word, records your command, transcribes it, sends it to yo
 1. **Silero VAD** detects speech segments from the microphone
 2. Buffers speech (up to 5 seconds)
 3. **faster-whisper tiny** model transcribes the buffer (fast, in-process)
-4. Checks for activation keywords (e.g. "cleber", "hey cleber", "hello cleber")
+4. Checks for activation keywords (e.g. "clever", "hey clever")
 5. No match → discard, keep listening
 
 **Phase 2 — Command** (triggered on keyword):
@@ -21,24 +21,27 @@ Listens for your wake word, records your command, transcribes it, sends it to yo
 5. Playback via **mpv** over PipeWire
 6. Return to Phase 1
 
-## Package structure
+## Architecture
+
+Hexagonal architecture (ports & adapters):
 
 ```
-hey_cleber/
-├── __init__.py          # Package version
-├── __main__.py          # Entry point and main loop
-├── audio.py             # Audio helpers (RMS, beep, play, save WAV, record)
-├── vad.py               # Silero VAD wrapper class
-├── transcription.py     # Whisper tiny + Whisper CLI transcription
-├── gateway.py           # Clawdbot gateway client
-├── tts.py               # TTS generation + playback (edge-tts + mpv)
-├── config.py            # Configuration constants and CLI args
-├── keywords.py          # Keyword matching logic
+hey_clever/
+├── ports/               # ABC interfaces
+├── domain/              # State machine, VAD, audio buffer
+├── adapters/            # SoundDevice, Whisper, Clawdbot, EdgeTTS, etc.
+├── config/              # Settings, logging
+├── factory.py           # Wires adapters into domain
+├── __main__.py          # Entry point
+├── audio.py             # Audio utilities
+├── vad.py               # Silero VAD wrapper
+├── transcription.py     # Whisper transcription
+├── gateway.py           # Clawdbot client
+├── tts.py               # TTS + playback
+├── keywords.py          # Keyword matching
 tests/
-├── test_keywords.py     # Keyword matching tests
-├── test_config.py       # Config/args tests
-├── test_audio.py        # RMS, beep generation tests
-├── test_transcription.py # Transcription tests (mocked)
+├── conftest.py          # Shared fixtures
+├── test_*.py            # Comprehensive test suite
 ```
 
 ## Requirements
@@ -64,15 +67,15 @@ tests/
 Add to your flake inputs:
 
 ```nix
-hey-cleber.url = "github:castrozan/hey-cleber/v2.0.0";
+hey-clever.url = "github:castrozan/hey-clever";
 ```
 
 Enable via Home Manager:
 
 ```nix
-imports = [ inputs.hey-cleber.homeManagerModules.default ];
+imports = [ inputs.hey-clever.homeManagerModules.default ];
 
-services.hey-cleber = {
+services.hey-clever = {
   enable = true;
   gatewayUrl = "http://localhost:18789";
 };
@@ -83,8 +86,8 @@ The flake manages the venv, dependencies, and systemd service automatically.
 ### Manual setup
 
 ```bash
-python3 -m venv ~/.local/share/hey-cleber-venv
-source ~/.local/share/hey-cleber-venv/bin/activate
+python3 -m venv ~/.local/share/hey-clever-venv
+source ~/.local/share/hey-clever-venv/bin/activate
 pip install sounddevice numpy requests faster-whisper onnxruntime edge-tts openwakeword
 ```
 
@@ -107,15 +110,15 @@ Enable the chat completions endpoint in your `clawdbot.json`:
 ## Usage
 
 ```bash
-source ~/.local/share/hey-cleber-venv/bin/activate
-python3 -m hey_cleber
+source ~/.local/share/hey-clever-venv/bin/activate
+python3 -m hey_clever
 ```
 
 ### Options
 
 | Flag | Default | Description |
 |------|---------|-------------|
-| `--keywords` | cleber,kleber,clever,... | Comma-separated activation keywords |
+| `--keywords` | clever,klever,cleber,... | Comma-separated activation keywords |
 | `--vad-threshold` | 0.4 | Silero VAD speech detection threshold |
 | `--silence-threshold` | 300 | RMS silence threshold for recording |
 | `--device` | (default) | Input audio device index |
@@ -125,9 +128,9 @@ python3 -m hey_cleber
 ### Systemd service
 
 ```bash
-systemctl --user status hey-cleber
-systemctl --user restart hey-cleber
-journalctl --user -u hey-cleber -f
+systemctl --user status hey-clever
+systemctl --user restart hey-clever
+journalctl --user -u hey-clever -f
 ```
 
 ### Environment variables
@@ -153,7 +156,7 @@ lint       # ruff check
 format     # ruff format
 typecheck  # mypy
 check      # all of the above
-run        # python -m hey_cleber
+run        # python -m hey_clever
 ```
 
 Or run directly without entering the shell:

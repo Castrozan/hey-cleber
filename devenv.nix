@@ -22,6 +22,7 @@
 
         # Dev
         pytest
+        pytest-mock
         ruff
         mypy
         types-requests
@@ -47,7 +48,7 @@
   # On NixOS, whisper is available system-wide at /run/current-system/sw/bin/whisper.
   # For non-NixOS, install it separately or set WHISPER_BIN.
   packages = [
-    pkgs.mpv    # audio playback
+    pkgs.mpv # audio playback
     pkgs.ffmpeg # audio conversion
   ];
 
@@ -61,7 +62,7 @@
   scripts.format.exec = "ruff format $@";
   scripts.format.description = "Format with ruff";
 
-  scripts.typecheck.exec = "mypy hey_cleber/ $@";
+  scripts.typecheck.exec = "mypy hey_clever/ $@";
   scripts.typecheck.description = "Type-check with mypy";
 
   scripts.check.exec = ''
@@ -69,15 +70,15 @@
     echo "==> lint"
     ruff check
     echo "==> typecheck"
-    mypy hey_cleber/
+    mypy hey_clever/
     echo "==> test"
     pytest
-    echo "✅ All checks passed"
+    echo "All checks passed"
   '';
   scripts.check.description = "Run lint + typecheck + tests";
 
-  scripts.run.exec = "python -m hey_cleber $@";
-  scripts.run.description = "Run hey-cleber locally";
+  scripts.run.exec = "python -m hey_clever $@";
+  scripts.run.description = "Run hey-clever locally";
 
   # --- Pre-commit hooks (lightweight, no extra CI infra) ---
   git-hooks.hooks = {

@@ -64,6 +64,7 @@ def find_silero_vad_model() -> str:
     # Check openwakeword package first
     try:
         import openwakeword
+
         pkg_dir = os.path.dirname(openwakeword.__file__)
         path = os.path.join(pkg_dir, "resources", "models", "silero_vad.onnx")
         if os.path.exists(path):
@@ -76,6 +77,4 @@ def find_silero_vad_model() -> str:
     for p in venv.rglob("silero_vad.onnx"):
         return str(p)
 
-    raise FileNotFoundError(
-        "silero_vad.onnx not found. Install openwakeword or provide the model."
-    )
+    raise FileNotFoundError("silero_vad.onnx not found. Install openwakeword or provide the model.")

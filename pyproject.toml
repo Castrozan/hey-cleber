@@ -1,6 +1,6 @@
 [project]
-name = "hey-cleber"
-version = "2.0.0"
+name = "hey-clever"
+version = "3.0.0"
 description = "Always-on voice assistant powered by Clawdbot"
 requires-python = ">=3.10"
 dependencies = [
@@ -16,6 +16,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest",
+    "pytest-mock",
     "ruff",
     "mypy",
 ]
@@ -35,3 +36,4 @@ disallow_untyped_defs = false
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = ["slow: marks tests that need external resources"]

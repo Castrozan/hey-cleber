@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 
-log = logging.getLogger("hey-cleber.keywords")
+log = logging.getLogger("hey-clever.keywords")
 
 
 def check_keyword(text: str, keywords: tuple[str, ...] | list[str]) -> bool:

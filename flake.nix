@@ -1,5 +1,5 @@
 {
-  description = "Hey Cleber — Always-on voice assistant powered by Clawdbot";
+  description = "Hey Clever — Always-on voice assistant powered by Clawdbot";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
@@ -14,9 +14,9 @@
       python = pkgs.python312;
 
       # Wrapper that uses a managed venv and runs the package
-      hey-cleber = pkgs.writeShellScriptBin "hey-cleber" ''
-        VENV_DIR="''${HEY_CLEBER_VENV:-$HOME/.local/share/hey-cleber-venv}"
-        PACKAGE_DIR="${self}/hey_cleber"
+      hey-clever = pkgs.writeShellScriptBin "hey-clever" ''
+        VENV_DIR="''${HEY_CLEVER_VENV:-$HOME/.local/share/hey-clever-venv}"
+        PACKAGE_DIR="${self}/hey_clever"
 
         export LD_LIBRARY_PATH="${pkgs.stdenv.cc.cc.lib}/lib:${pkgs.portaudio}/lib:${pkgs.zlib}/lib''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
         export PATH="${pkgs.ffmpeg}/bin:${pkgs.mpv}/bin:${pkgs.openai-whisper}/bin:$PATH"
@@ -24,7 +24,7 @@
         export PYTHONPATH="${self}''${PYTHONPATH:+:$PYTHONPATH}"
 
         if [ ! -d "$VENV_DIR" ]; then
-          echo "Setting up Hey Cleber venv at $VENV_DIR ..."
+          echo "Setting up Hey Clever venv at $VENV_DIR ..."
           ${python}/bin/python3 -m venv "$VENV_DIR"
           source "$VENV_DIR/bin/activate"
           pip install --upgrade pip setuptools wheel >/dev/null 2>&1
@@ -33,13 +33,13 @@
           source "$VENV_DIR/bin/activate"
         fi
 
-        exec python3 -m hey_cleber "$@"
+        exec python3 -m hey_clever "$@"
       '';
     in
     {
       packages.${system} = {
-        default = hey-cleber;
-        inherit hey-cleber;
+        default = hey-clever;
+        inherit hey-clever;
       };
 
       devShells.${system}.default = pkgs.mkShell {
@@ -53,28 +53,33 @@
       };
 
       # Home Manager module
-      homeManagerModules.default = self.homeManagerModules.hey-cleber;
-      homeManagerModules.hey-cleber =
-        { config, lib, pkgs, ... }:
+      homeManagerModules.default = self.homeManagerModules.hey-clever;
+      homeManagerModules.hey-clever =
+        {
+          config,
+          lib,
+          pkgs,
+          ...
+        }:
         let
-          cfg = config.services.hey-cleber;
+          cfg = config.services.hey-clever;
         in
         {
-          options.services.hey-cleber = {
-            enable = lib.mkEnableOption "Hey Cleber voice assistant";
+          options.services.hey-clever = {
+            enable = lib.mkEnableOption "Hey Clever voice assistant";
 
             keywords = lib.mkOption {
               type = lib.types.listOf lib.types.str;
               default = [
+                "clever"
+                "klever"
                 "cleber"
                 "kleber"
-                "clever"
                 "cleaver"
-                "clebert"
+                "clevert"
                 "kleiber"
                 "klebber"
                 "cleyber"
-                "klever"
               ];
               description = "Activation keywords for wake word detection";
             };
@@ -106,23 +111,26 @@
             extraArgs = lib.mkOption {
               type = lib.types.listOf lib.types.str;
               default = [ ];
-              description = "Extra arguments to pass to hey-cleber";
+              description = "Extra arguments to pass to hey-clever";
             };
 
             package = lib.mkOption {
               type = lib.types.package;
-              default = hey-cleber;
-              description = "The hey-cleber package to use";
+              default = hey-clever;
+              description = "The hey-clever package to use";
             };
           };
 
           config = lib.mkIf cfg.enable {
             home.packages = [ cfg.package ];
 
-            systemd.user.services.hey-cleber = {
+            systemd.user.services.hey-clever = {
               Unit = {
-                Description = "Hey Cleber Voice Assistant";
-                After = [ "pipewire.service" "pipewire-pulse.service" ];
+                Description = "Hey Clever Voice Assistant";
+                After = [
+                  "pipewire.service"
+                  "pipewire-pulse.service"
+                ];
                 Wants = [ "pipewire.service" ];
               };
 
@@ -133,14 +141,15 @@
                     keywordsArg = "--keywords ${lib.concatStringsSep "," cfg.keywords}";
                     extraArgsStr = lib.concatStringsSep " " cfg.extraArgs;
                   in
-                  "${cfg.package}/bin/hey-cleber ${keywordsArg} ${extraArgsStr}";
+                  "${cfg.package}/bin/hey-clever ${keywordsArg} ${extraArgsStr}";
                 Restart = "on-failure";
                 RestartSec = "5s";
                 Environment = [
                   "CLAWDBOT_GATEWAY_URL=${cfg.gatewayUrl}"
                   "WHISPER_BIN=${cfg.whisperBin}"
                   "MPV_BIN=${cfg.mpvBin}"
-                ] ++ lib.optional (cfg.gatewayToken != "") "CLAWDBOT_GATEWAY_TOKEN=${cfg.gatewayToken}";
+                ]
+                ++ lib.optional (cfg.gatewayToken != "") "CLAWDBOT_GATEWAY_TOKEN=${cfg.gatewayToken}";
               };
 
               Install = {

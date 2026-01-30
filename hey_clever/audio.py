@@ -15,7 +15,7 @@ import sounddevice as sd
 
 from .config import CHANNELS, SAMPLE_RATE, AppConfig
 
-log = logging.getLogger("hey-cleber.audio")
+log = logging.getLogger("hey-clever.audio")
 
 
 def rms(block: np.ndarray) -> float:
@@ -58,15 +58,21 @@ def play_audio_file(
     try:
         subprocess.run(
             ["wpctl", "set-mute", "@DEFAULT_AUDIO_SINK@", "0"],
-            env=env, capture_output=True, timeout=5,
+            env=env,
+            capture_output=True,
+            timeout=5,
         )
         subprocess.run(
             ["wpctl", "set-volume", "@DEFAULT_AUDIO_SINK@", "1.0"],
-            env=env, capture_output=True, timeout=5,
+            env=env,
+            capture_output=True,
+            timeout=5,
         )
         proc = subprocess.Popen(
             [mpv_bin, "--no-video", "--ao=pipewire", path],
-            env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            env=env,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
         )
         while proc.poll() is None:
             if interrupt_event is not None and interrupt_event.is_set():

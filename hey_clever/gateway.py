@@ -8,7 +8,7 @@ import requests
 
 from .config import AppConfig
 
-log = logging.getLogger("hey-cleber.gateway")
+log = logging.getLogger("hey-clever.gateway")
 
 
 def send_to_clawdbot(message: str, config: AppConfig) -> str:
@@ -29,14 +29,13 @@ def send_to_clawdbot(message: str, config: AppConfig) -> str:
     }
     payload = {
         "model": "clawdbot:main",
-        "user": "voice-cleber",
+        "user": "voice-clever",
         "messages": [
             {
                 "role": "user",
                 "content": (
                     "[Voice input from microphone — respond concisely for TTS playback. "
-                    "Match the user's language (English or Portuguese).]\n\n"
-                    + message
+                    "Match the user's language (English or Portuguese).]\n\n" + message
                 ),
             },
         ],

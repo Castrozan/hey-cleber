@@ -1,9 +1,8 @@
 """Tests for configuration parsing."""
 
-
 import pytest
 
-from hey_cleber.config import DEFAULT_KEYWORDS, AppConfig, parse_args
+from hey_clever.config import DEFAULT_KEYWORDS, AppConfig, parse_args
 
 
 class TestAppConfig:

@@ -13,7 +13,7 @@ import numpy as np
 from .audio import save_wav
 from .config import AppConfig
 
-log = logging.getLogger("hey-cleber.transcription")
+log = logging.getLogger("hey-clever.transcription")
 
 
 def transcribe_tiny(whisper_model: Any, audio: np.ndarray) -> str:

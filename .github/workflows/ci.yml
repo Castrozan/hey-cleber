@@ -19,14 +19,14 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip
-          pip install numpy requests onnxruntime
+          pip install numpy requests onnxruntime pytest-mock
           pip install pytest ruff mypy
 
       - name: Lint
-        run: ruff check hey_cleber/ tests/
+        run: ruff check hey_clever/ tests/
 
       - name: Type check
-        run: mypy hey_cleber/ --ignore-missing-imports
+        run: mypy hey_clever/ --ignore-missing-imports
 
       - name: Test
         run: python -m pytest tests/ -v

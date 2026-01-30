@@ -14,7 +14,7 @@ import time
 from .audio import play_audio_file
 from .config import AppConfig
 
-log = logging.getLogger("hey-cleber.tts")
+log = logging.getLogger("hey-clever.tts")
 
 
 def tts_and_play(
@@ -41,10 +41,15 @@ def tts_and_play(
 
         result = subprocess.run(
             [
-                sys.executable, "-m", "edge_tts",
-                "--text", text,
-                "--voice", "en-US-GuyNeural",
-                "--write-media", mp3_path,
+                sys.executable,
+                "-m",
+                "edge_tts",
+                "--text",
+                text,
+                "--voice",
+                "en-US-GuyNeural",
+                "--write-media",
+                mp3_path,
             ],
             capture_output=True,
             text=True,
